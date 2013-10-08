@@ -29,7 +29,7 @@
     //cached reference to template wrapped in jQuery
     template: $("#contactTemplate").html(),
    
-    render: function () {
+    render: function(){
       //When passed a single arg containing a template 
       //Underscore doesn’t invoke it immediately but 
       //will return method that can be called
@@ -51,6 +51,10 @@
       this.collection = new Directory(contacts);
       //call own render() defined below making view self-rendering
       this.render();
+      this.$el.find("#filter").append(this.createSelect());
+      this.on("change:filterType", this.filterByType, this);
+      //when “reset” event triggered on 'contacts' render method called
+      this.collection.on("reset", this.render, this);
     },
  
     //define render() method for master view
@@ -70,9 +74,50 @@
       });
       //append each <article> template to #contacts
       this.$el.append(contactView.render().el);
+    },
+    getTypes: function () {
+      return _.uniq(this.collection.pluck("type"));
+    },
+    createSelect: function () {
+      select = $("<select/>", {
+      html: "<option>All</option>"
+      });
+      _.each(this.getTypes(), function (item) {
+        var option = $("<option/>", {
+            value: item.toLowerCase(),
+            text: item.toLowerCase()
+        }).appendTo(select);
+      });      
+      return select;
+    },
+    //passing silent:true since collection needs to be filtered first
+    //add ui events
+        //add ui events
+    events: {
+      "change #filter select": "setFilter"
+    },
+    //Set filter property and fire change event
+    setFilter: function (e) {
+      this.filterType = e.currentTarget.value;
+      this.trigger("change:filterType");
+    },
+    //filter the view
+    filterByType: function () {
+      if (this.filterType === "all") {
+        this.collection.reset(contacts);
+        contactsRouter.navigate("filter/all");
+      } else {
+        this.collection.reset(contacts, { silent: true });
+        var filterType = this.filterType,
+        filtered = _.filter(this.collection.models, function (item) {
+          return item.get("type") === filterType;
+        });
+        this.collection.reset(filtered);
+      }
     }
   });
 
   var directory = new DirectoryView();
  
 } (jQuery));
+    //passing silent:true since collection needs to be filtered first
