@@ -56,7 +56,7 @@
       //when the views filterType event fires call 'filterByType' callback specifying 'this'
       //as its argument (via the third argument to 'on')
       this.on("change:filterType", this.filterByType, this);
-      //when “reset” event triggered on 'contacts' render method called specifying 'this'
+      //when “reset” event triggered on 'contacts', render method called specifying 'this'
       //as its argument (via the third argument to 'on')
       this.collection.on("reset", this.render, this);
     },
@@ -126,7 +126,8 @@
         contactsRouter.navigate("filter/all");
 
       } else {
-        //pass silent:true since collection needs to be filtered first
+        //since collection needs to be filtered first
+        //pass silent:true so contacts are reset but event doesn't fire
         this.collection.reset(contacts, { silent: true });
 
         var filterType = this.filterType,
@@ -135,6 +136,7 @@
         filtered = _.filter(this.collection.models, function (item){
           return item.get("type") === filterType;
         });
+        //now that collection is filtered, reset contacts to show only the filtered ones
         this.collection.reset(filtered);
 
         contactsRouter.navigate("filter/" + filterType);
